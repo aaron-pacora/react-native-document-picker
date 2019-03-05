@@ -3,6 +3,7 @@ package com.reactnativedocumentpicker;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.ClipData;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableArray;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,6 +37,7 @@ import java.util.ArrayList;
 public class DocumentPicker extends ReactContextBaseJavaModule implements ActivityEventListener {
     private static final String NAME = "RNDocumentPicker";
     private static final int READ_REQUEST_CODE = 41;
+    private static boolean isMultiselect = false;
 
     private static class Fields {
         private static final String FILE_SIZE = "fileSize";
@@ -75,6 +78,10 @@ public class DocumentPicker extends ReactContextBaseJavaModule implements Activi
                 intent.putExtra(Intent.EXTRA_MIME_TYPES, newArrray);
             }
         }
+        if(args.hasKey("multiselect")){
+            this.isMultiselect = args.getBoolean("multiselect");
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, this.isMultiselect);
+        }
 
         this.callback = callback;
 
@@ -101,9 +108,30 @@ public class DocumentPicker extends ReactContextBaseJavaModule implements Activi
             return;
         }
 
+        Uri uri = null;
+        ClipData clipData = null;
+        if (data != null) {
+            uri      = data.getData();
+            clipData = data.getClipData();
+        }
         try {
-            Uri uri = data.getData();
-            callback.invoke(null, toMapWithMetadata(uri));
+            WritableArray results = Arguments.createArray();
+
+            if (uri != null) {
+                if(this.isMultiselect){
+                    results.pushMap(toMapWithMetadata(uri));
+                    callback.invoke(null, results);
+                }else{
+                    callback.invoke(null, toMapWithMetadata(uri));
+                }
+            } else if (clipData != null && clipData.getItemCount() > 0) {
+                final int length = clipData.getItemCount();
+                for (int i = 0; i < length; ++i) {
+                    ClipData.Item item = clipData.getItemAt(i);
+                    results.pushMap(toMapWithMetadata(item.getUri()));
+                }
+                callback.invoke(null, results);
+            }
         } catch (Exception e) {
             Log.e(NAME, "Failed to read", e);
             callback.invoke(e.getMessage(), null);
