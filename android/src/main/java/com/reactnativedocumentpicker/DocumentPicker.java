@@ -78,6 +78,7 @@ public class DocumentPicker extends ReactContextBaseJavaModule implements Activi
                 intent.putExtra(Intent.EXTRA_MIME_TYPES, newArrray);
             }
         }
+        this.isMultiselect = false;
         if(args.hasKey("multiselect")){
             this.isMultiselect = args.getBoolean("multiselect");
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, this.isMultiselect);
