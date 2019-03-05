@@ -1,6 +1,6 @@
 # react-native-document-picker
 
-A React Native wrapper for Apple's ``UIDocumentMenuViewController`` and for Android's ``Intent.ACTION_OPEN_DOCUMENT`` / ``Intent.ACTION_PICK``.
+A React Native wrapper for Apple's ``UIDocumentMenuViewController`` and for Android's ``Intent.ACTION_OPEN_DOCUMENT`` / ``Intent.ACTION_PICK`` -> This project enables multiple types of files.
 
 ### Installation
 
@@ -87,6 +87,18 @@ import { DocumentPicker, DocumentPickerUtil } from 'react-native-document-picker
 // iPhone/Android
 DocumentPicker.show({
       filetype: [DocumentPickerUtil.images()],
+    },(error,res) => {
+      // Android
+      console.log(
+         res.uri,
+         res.type, // mime type
+         res.fileName,
+         res.fileSize
+      );
+    });
+// iPhone/Android
+DocumentPicker.show({
+      filetype: ['application/rar','text/xml','application/pdf'],
     },(error,res) => {
       // Android
       console.log(
